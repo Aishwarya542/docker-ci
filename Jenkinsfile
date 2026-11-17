@@ -2,8 +2,7 @@ pipeline {
     agent any
 
     environment {
-        // Replace 'yourdockerhubusername' with your actual Docker Hub ID
-        DOCKER_IMAGE = "yourdockerhubusername/student-demo-app"
+        DOCKER_IMAGE = "anilkumarbh/student-demo-app"
         DOCKER_CREDENTIALS_ID = "dockerhub-creds"
     }
 
@@ -16,19 +15,15 @@ pipeline {
 
         stage('2. Application Build & Test') {
             steps {
-                echo "Verifying Python syntax and dependencies..."
-                sh 'python3 -m py_compile app.py'
+                echo "Verifying Python syntax..."
+                bat 'python -m py_compile app.py'
             }
         }
 
         stage('3. Build & Tag Docker Image') {
             steps {
-                script {
-                    echo "Building image tagged with Build #${env.BUILD_NUMBER} and latest..."
-                    sh """
-                        docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} -t ${DOCKER_IMAGE}:latest .
-                    """
-                }
+                echo "Building image tagged with Build #${env.BUILD_NUMBER} and latest..."
+                bat "docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} -t ${DOCKER_IMAGE}:latest ."
             }
         }
 
@@ -39,11 +34,11 @@ pipeline {
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    sh """
-                        echo "\$DOCKER_PASS" | docker login -u "\$DOCKER_USER" --password-stdin
-                        docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
-                        docker push ${DOCKER_IMAGE}:latest
-                    """
+                    bat '''
+                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                        docker push %DOCKER_IMAGE%:%BUILD_NUMBER%
+                        docker push %DOCKER_IMAGE%:latest
+                    '''
                 }
             }
         }
@@ -51,10 +46,10 @@ pipeline {
 
     post {
         always {
-            echo "Cleaning up local images to save disk space..."
-            sh """
+            echo "Cleaning up local images..."
+            bat """
                 docker logout
-                docker rmi ${DOCKER_IMAGE}:${BUILD_NUMBER} ${DOCKER_IMAGE}:latest || true
+                docker rmi ${DOCKER_IMAGE}:${BUILD_NUMBER} ${DOCKER_IMAGE}:latest 2>nul || exit /b 0
             """
         }
         success {
