@@ -33,12 +33,11 @@ pipeline {
         }
     }
 
-    post {
-        always {
-            bat "docker rmi ${REGISTRY}/${IMAGE_NAME}:${BUILD_NUMBER} ${REGISTRY}/${IMAGE_NAME}:latest 2>nul || exit /b 0"
-        }
-        success {
-            echo "Build #${BUILD_NUMBER} pushed! Verify at http://localhost:5000/v2/_catalog"
-        }
-    }
+   post {
+success {
+echo "Pipeline succeeded! Image
+${REGISTRY}/${IMAGE_NAME}:${BUILD_NUMBER} is available locally and in the
+registry."
+}
+}
 }
