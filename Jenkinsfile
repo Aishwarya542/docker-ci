@@ -27,22 +27,23 @@ pipeline {
             }
         }
 
-       stage('4. Push Image to Docker Hub') {
-    steps {
-        withCredentials([usernamePassword(
-            credentialsId: "${DOCKER_CREDENTIALS_ID}",
-            usernameVariable: 'DOCKER_USER',
-            passwordVariable: 'DOCKER_PASS'
-        )]) {
-            powershell '''
-                $env:DOCKER_PASS | docker login -u $env:DOCKER_USER --password-stdin
-                if ($LASTEXITCODE -ne 0) { exit 1 }
-                docker push "$env:DOCKER_IMAGE`:$env:BUILD_NUMBER"
-                docker push "$env:DOCKER_IMAGE`:latest"
-            '''
+        stage('4. Push Image to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: "${DOCKER_CREDENTIALS_ID}",
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    powershell '''
+                        $env:DOCKER_PASS | docker login -u $env:DOCKER_USER --password-stdin
+                        if ($LASTEXITCODE -ne 0) { exit 1 }
+                        docker push "$env:DOCKER_IMAGE`:$env:BUILD_NUMBER"
+                        docker push "$env:DOCKER_IMAGE`:latest"
+                    '''
+                }
+            }
         }
     }
-}
 
     post {
         always {
